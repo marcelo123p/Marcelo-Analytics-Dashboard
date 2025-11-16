@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Restaurante da Maria — Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #0d1117;
+        color: #fff;
+    }
+
+    header {
+        background: linear-gradient(90deg, #161b22, #1f2937);
+        padding: 24px;
+        text-align: center;
+        font-size: 28px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        animation: fadeDown 1.2s ease;
+        box-shadow: 0 0 20px #000;
+    }
+
+    @keyframes fadeDown {
+        from { opacity: 0; transform: translateY(-25px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .cards {
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+        gap: 20px;
+        flex-wrap: wrap;
+        animation: fadeIn 1.2s ease;
+    }
+
+    .card {
+        width: 280px;
+        background: #1f2937;
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0 0 16px #000;
+        text-align: center;
+        transition: 0.4s;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .card:hover {
+        transform: scale(1.07);
+        box-shadow: 0 0 25px #111;
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+        100% { transform: translateY(0); }
+    }
+
+    input, select {
+        padding: 12px;
+        border-radius: 8px;
+        border: none;
+        width: 260px;
+        background: #30363d;
+        color: #fff;
+        margin-right: 10px;
+    }
+
+    button {
+        padding: 12px 20px;
+        background: #238636;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #2ea043;
+    }
+
+    table {
+        width: 90%;
+        margin: 25px auto;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 12px;
+        border-bottom: 1px solid #444;
+        text-align: center;
+    }
+
+    th {
+        background: #30363d;
+    }
+
+    tr:hover {
+        background: #21262d;
+    }
+
+    .charts {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        margin-top: 40px;
+        flex-wrap: wrap;
+    }
+
+    .chart-container {
+        width: 430px;
+        background: #1f2937;
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0 0 12px #000;
+    }
+</style>
+</head>
+<body>
+
+<header>Restaurante da Maria — Dashboard</header>
+
+<div class="cards">
+    <div class="card">
+        Total de Vendas<br>
+        <span id="totalVendas" style="font-size:28px;">R$ 0</span>
+    </div>
+
+    <div class="card">
+        Produto Mais Vendido<br>
+        <span id="produtoMaisVendido" style="font-size:22px;"></span>
+    </div>
+
+    <div class="card">
+        Canal Mais Usado<br>
+        <span id="canalMaisUsado" style="font-size:22px;"></span>
+    </div>
+</div>
+
+<div style="text-align:center">
+    <input type="text" id="campoBusca" placeholder="Digite o nome de um produto...">
+    <select id="filtroCanal">
+        <option value="Todos">Todos os canais</option>
+        <option value="Local">Local</option>
+        <option value="iFood">iFood</option>
+        <option value="Rappi">Rappi</option>
+    </select>
+    <button onclick="pesquisar()">Pesquisar</button>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Produto</th>
+            <th>Quantidade</th>
+            <th>Canal</th>
+            <th>Data</th>
+            <th>Valor Total</th>
+        </tr>
+    </thead>
+    <tbody id="tabelaResultados"></tbody>
+</table>
+
+<div class="charts">
+    <div class="chart-container"><canvas id="graficoVendas"></canvas></div>
+    <div class="chart-container"><canvas id="graficoCanais"></canvas></div>
+</div>
+
+<script>
+const dados = [
+    { produto: "Pizza Mussarela", quantidade: 40, canal: "Local", data: "2025-02-11", valor: 1200 },
+    { produto: "Pizza Calabresa", quantidade: 32, canal: "iFood", data: "2025-02-12", valor: 960 },
+    { produto: "Coca-Cola 2L", quantidade: 55, canal: "Local", data: "2025-02-13", valor: 550 },
+    { produto: "Hambúrguer Caseiro", quantidade: 28, canal: "Rappi", data: "2025-02-10", valor: 840 },
+    { produto: "Batata Frita", quantidade: 60, canal: "iFood", data: "2025-02-11", valor: 600 }
+];
+
+let grafico1, grafico2;
+
+function atualizarPainel(lista) {
+    let total = lista.reduce((s, i) => s + i.valor, 0);
+    document.getElementById("totalVendas").innerText = "R$ " + total;
+
+    let maisVendido = lista.reduce((a, b) => a.quantidade > b.quantidade ? a : b);
+    document.getElementById("produtoMaisVendido").innerText = maisVendido.produto;
+
+    let canais = {};
+    lista.forEach(i => canais[i.canal] = (canais[i.canal] || 0) + i.quantidade);
+
+    let canalMais = Object.entries(canais).sort((a,b)=>b[1]-a[1])[0];
+    document.getElementById("canalMaisUsado").innerText = canalMais[0];
+
+    if (grafico1) grafico1.destroy();
+    if (grafico2) grafico2.destroy();
+
+    grafico1 = new Chart(graficoVendas, {
+        type: "bar",
+        data: {
+            labels: lista.map(x => x.produto),
+            datasets: [{
+                label: "Quantidade Vendida",
+                data: lista.map(x => x.quantidade)
+            }]
+        }
+    });
+
+    grafico2 = new Chart(graficoCanais, {
+        type: "pie",
+        data: {
+            labels: Object.keys(canais),
+            datasets: [{
+                data: Object.values(canais)
+            }]
+        }
+    });
+}
+
+function preencherTabela(lista) {
+    let corpo = document.getElementById("tabelaResultados");
+    corpo.innerHTML = "";
+
+    lista.forEach(item => {
+        corpo.innerHTML += `
+            <tr>
+                <td>${item.produto}</td>
+                <td>${item.quantidade}</td>
+                <td>${item.canal}</td>
+                <td>${item.data}</td>
+                <td>R$ ${item.valor}</td>
+            </tr>`;
+    });
+}
+
+function pesquisar() {
+    let texto = document.getElementById("campoBusca").value.toLowerCase();
+    let canal = document.getElementById("filtroCanal").value;
+
+    let filtrado = dados.filter(item =>
+        item.produto.toLowerCase().includes(texto) &&
+        (canal === "Todos" || item.canal === canal)
+    );
+
+    preencherTabela(filtrado);
+    atualizarPainel(filtrado);
+}
+
+preencherTabela(dados);
+atualizarPainel(dados);
+</script>
+
+</body>
+</html>
