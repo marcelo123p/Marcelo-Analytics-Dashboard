@@ -1,146 +1,89 @@
-Restaurante Maria – Analytics Dashboard
+📊 Plataforma de Analytics para Restaurantes
 
 Interface: https://github.com/user-attachments/assets/fce10549-c24c-43c3-a199-ba7d5aea1d11
 
+Projeto desenvolvido como solução para o desafio God Level Coder — NOLA
 
-Dashboard para análise operacional de restaurantes, com foco em visualização de vendas, produtos, ticket médio e indicadores de desempenho. O sistema é composto por um frontend estático e uma API Node.js integrada ao PostgreSQL.
+🚀 Visão Geral
 
-Arquitetura
+Esta aplicação foi criada para permitir que donos de restaurantes analisem suas vendas de maneira simples e rápida, funcionando como um mini “Power BI do Food Service”.
 
-A aplicação é dividida em dois módulos:
+Ela integra:
 
-Frontend (Fronte-Dashboard-RestauranteMaria)
+Backend Node.js + Express
 
-Interface web responsável pela visualização dos dados.
-Construída com HTML, CSS, JavaScript modular e Chart.js.
+Banco PostgreSQL
 
-Fronte-Dashboard-RestauranteMaria
-│
-├── index.html
-├── style.css
-├── script.js
-│
-├── charts/
-│   ├── vendasPorDia.js
-│   ├── produtosMaisVendidos.js
-│   ├── ticketMedio.js
-│   └── desempenhoGeral.js
-│
-└── assets/
-    └── logo.png
+Frontend JavaScript consumindo API via fetch()
 
-Backend (Backend-RestauranteMaria)
+Endpoint /vendas que retorna os dados estruturados do banco.
 
-API REST responsável por servir os dados ao dashboard.
+🏗️ Arquitetura Geral
+Frontend (HTML + JS)
+        |
+     fetch()
+        |
+Backend Node.js/Express ----> PostgreSQL (Tabela: vendas)
 
-Backend-RestauranteMaria
-│
-├── server.js
-├── package.json
-│
-├── src/
-│   ├── config/
-│   │   └── db.js
-│   │
-│   ├── routes/
-│   │   └── vendasRoutes.js
-│   │
-│   ├── controllers/
-│   │   └── vendasController.js
-│   │
-│   └── services/
-│       └── vendasService.js
-│
-└── sql/
-    ├── criar_tabelas.sql
-    ├── inserir_dados_exemplo.sql
-    └── consultas.sql
+🔹 Fluxo resumido
 
-Tecnologias
-Frontend
+O usuário acessa a página.
 
-HTML5
+A página chama a API usando fetch('/vendas').
 
-CSS3
+O backend acessa o banco.
 
-JavaScript ES6
+Os dados retornam em JSON.
 
-Chart.js
+O frontend exibe insights básicos (produto mais vendido, ticket médio etc).
 
-Backend
-
-Node.js
-
-Express
-
-PostgreSQL
-
-pg
-
-CORS
-
-API
-
-Base URL:
-
-/api
+📦 Backend (Node + Express)
+✨ Endpoint principal
+app.get('/vendas', async (req, res) => {
+  const result = await pool.query('SELECT * FROM vendas');
+  res.json(result.rows);
+});
 
 
-Endpoints disponíveis:
+O endpoint consulta a tabela vendas usando pool.query()
 
-GET /vendas/dia
-GET /vendas/produtos-mais-vendidos
-GET /vendas/ticket-medio
-GET /vendas/desempenho-geral
+Retorna um JSON com todas as vendas cadastradas.
 
-
-Os endpoints retornam dados estruturados para consumo direto pelo frontend.
-
-Banco de Dados
-
-Scripts disponíveis em /sql:
-
-criar_tabelas.sql – estrutura do schema
-
-inserir_dados_exemplo.sql – dataset inicial
-
-consultas.sql – queries base utilizadas no serviço
-
-Banco recomendado:
-
-PostgreSQL 14+
-
-Setup
-Backend
-cd Backend-RestauranteMaria
-npm install
-npm run dev
+Estrutura da tabela vendas
+campo	tipo
+id	serial
+produto	text
+quantidade	int
+valor	numeric
+data_venda	date
+🌐 Frontend (HTML + JavaScript)
+Exemplo simples do consumo da API
+async function carregarVendas() {
+  const resposta = await fetch('http://localhost:3000/vendas');
+  const dados = await resposta.json();
+  console.log(dados);
+}
+carregarVendas();
 
 
-Servidor padrão:
+A partir desse JSON, a interface pode:
 
-http://localhost:3000
+calcular o produto mais vendido
 
-Frontend
+gerar gráficos básicos
 
-Abrir diretamente o arquivo:
+listar vendas
 
-index.html
+exibir totais e métricas
 
+🛠️ Tecnologias Utilizadas
 
-ou utilizar Live Server.
+Node.js + Express — Servidor e API
 
-Funcionalidades
+PostgreSQL + pgAdmin — Banco de dados
 
-Consulta de vendas diárias
+JavaScript — Lógica do frontend
 
-Ranking de produtos mais vendidos
+Fetch API — Comunicação com o backend
 
-Cálculo de ticket médio
-
-Indicadores gerais de desempenho
-
-API desacoplada e modularizada
-
-Estrutura escalável para novos endpoints e visualizações
-
+VS Code (Linux Ubuntu) — Ambiente de desenvolvimento
